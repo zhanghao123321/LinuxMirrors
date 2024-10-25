@@ -5,6 +5,8 @@ hide:
   - footer
 ---
 
+> 如果您觉得这个项目不错对您有所帮助的话，请点击仓库右上角的 Star 并分享给更多的朋友 :octicons-heart-fill-24:{ .heart style="color: red" }
+
 ## :fontawesome-brands-docker:{style="color: #086dd7"} Docker 安装脚本
 
 支持 `选择或更换软件源以及镜像仓库`、`安装指定版本`、`重装` 等功能  
@@ -77,7 +79,7 @@ bash <(curl -sSL https://linuxmirrors.cn/docker.sh)
 | `--source` | 指定 `Docker CE` 源地址(域名或IP) | 地址 |
 | `--source-registry` | 指定镜像仓库地址(域名或IP) | 地址 |
 | `--codename` | 指定 Debian 系操作系统的版本代号 | 代号名称 |
-| `--install-latested` | 控制是否安装最新版本的 Docker Engine | `true` 或 `false` |
+| `--install-latest` | 控制是否安装最新版本的 Docker Engine | `true` 或 `false` |
 | `--ignore-backup-tips` | 忽略覆盖备份提示（即不覆盖备份） | 无 |
 
 > 软件源格式 `<指定WEB协议>://<软件源地址>/<软件源分支>`
@@ -98,12 +100,12 @@ bash <(curl -sSL https://linuxmirrors.cn/docker.sh)
 
         > `Debian` &nbsp; `Ubuntu` &nbsp; `Kali` &nbsp; `Linux Mint` &nbsp; `Deepin` &nbsp; `Armbian` &nbsp; `Proxmox`
 
-    === "RedHat 系 / OpenCloudOS / openEuler"
+    === "RedHat 系 / OpenCloudOS / openEuler / Anolis OS"
 
         ``` bash
         yum remove -y docker* containerd.io podman* runc
         ```
 
-        > `Red Hat Enterprise Linux` &nbsp; `CentOS` &nbsp; `Rocky Linux` &nbsp; `AlmaLinux` &nbsp; `Fedora` &nbsp; `OpenCloudOS` &nbsp; `openEuler`
+        > `Red Hat Enterprise Linux` &nbsp; `CentOS` &nbsp; `Rocky Linux` &nbsp; `AlmaLinux` &nbsp; `Fedora` &nbsp; `OpenCloudOS` &nbsp; `openEuler` &nbsp; `Anolis OS`
 
     卸载完成后重新执行脚本安装即可

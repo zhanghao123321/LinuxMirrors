@@ -29,7 +29,7 @@ hide:
 
 ???+ question "使用帮助"
 
-    :supported: 支持 &nbsp;&nbsp; :unsupport: 不支持 &nbsp;&nbsp; :incompatible: 不兼容，表示软件源分支命名不符合脚本默认规则但可以通过命令选项来使用，关于具体用法示例和各操作系统所使用的默认分支名称[详见此处](../use/command-options.md#指定软件源仓库分支)
+    :supported: 支持 &nbsp;&nbsp; :unsupport: 不支持 &nbsp;&nbsp; :incompatible: 不兼容，表示软件源分支命名不符合脚本默认规则但可以通过命令选项来使用，关于具体用法示例和各操作系统所使用的默认分支名称[详见此处](../use/index.md#指定软件源仓库分支)
 
     如果这里没有想使用的镜像站那可以看看其它运行模式和命令选项。软件源的速度区分刷新速度和下行速率，后者才是关键，具体请结合实际地理位置选择尝试，还可以通过[辅助工具网站](#工具网站)进行一些测试
 
@@ -70,7 +70,7 @@ hide:
     | 上海交通大学（思源） | [mirror.sjtu.edu.cn](https://mirror.sjtu.edu.cn "https://mirror.sjtu.edu.cn") |
     | 上海交通大学（致远） | [mirrors.sjtug.sjtu.edu.cn](https://mirrors.sjtug.sjtu.edu.cn "https://mirrors.sjtug.sjtu.edu.cn") |
 
-## 海外地区 :flag-world-map:
+## 境外以及海外地区 :flag-world-map:
 
 === ":fontawesome-solid-earth-asia: 亚洲"
 
@@ -245,7 +245,7 @@ hide:
 
     该列表中的软件源参考自 [`Ubuntu 镜像列表`](https://launchpad.net/ubuntu/+cdmirrors "https://launchpad.net/ubuntu/+cdmirrors")、[`Debian 镜像列表`](https://www.debian.org/CD/http-ftp/#mirrors "https://www.debian.org/CD/http-ftp/#mirrors")、[`Fedora Mirror Manager`](https://admin.fedoraproject.org/mirrormanager/mirrors "https://admin.fedoraproject.org/mirrormanager/mirrors") 并且在此之前全部经过了有效性验证，但未作实际测试
 
-    作者没有精力持续维护列表中的这些海外镜像站，如果你想补充更多海外软件源或更正当前已有，请修改脚本内的 [`mirror_list_abroad 数组变量`](https://github.com/SuperManito/LinuxMirrors/blame/main/ChangeMirrors.sh#L60 "https://github.com/SuperManito/LinuxMirrors/blame/main/ChangeMirrors.sh#L60") 并按照下面的编辑规范进行修改
+    作者没有精力持续维护列表中的这些海外镜像站，如果你想补充更多海外软件源或更正当前已有，请修改脚本内的 [`mirror_list_abroad 数组变量`](https://github.com/SuperManito/LinuxMirrors/blame/main/ChangeMirrors.sh#L60 "https://github.com/SuperManito/LinuxMirrors/blame/main/ChangeMirrors.sh#L66") 并按照下面的编辑规范进行修改
 
     你可以在确认软件源地址无误后前往 GitHub 仓库提交 [Pull Requests](https://github.com/SuperManito/LinuxMirrors/pulls "https://github.com/SuperManito/LinuxMirrors/pulls")，也可以 :material-source-fork: Fork 仓库后自行定制使用
 
@@ -268,4 +268,4 @@ hide:
 <button class="md-button" title="https://tools.ipip.net/traceroute.php" onclick="window.open('https://tools.ipip.net/traceroute.php')">Tracert 路由追踪测试</button>
 <button class="md-button" title="https://ipw.cn/ipv6webcheck" onclick="window.open('https://ipw.cn/ipv6webcheck')">IPv6 接入测试</button>
 
-!!! tip "该页面展示的均为脚本默认提供可供选择的软件源地址，如果没有找到你想使用的也没有关系，脚本支持命令选项可自定义使用，详见[高级用法](../use/command-options.md)</br>特此声明：本页面用到的旗帜符号仅用于快速区分地理位置不代表作者的任何政治立场"
+!!! tip "该页面展示的均为脚本默认提供可供选择的软件源地址，如果没有找到你想使用的也没有关系，脚本支持命令选项可自定义使用，详见[高级用法](../use/index.md#命令选项高级用法)</br>特此声明：本页面用到的旗帜符号仅用于快速区分地理位置不代表作者的任何政治立场，请不要过度解读！"

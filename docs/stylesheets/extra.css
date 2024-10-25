@@ -7,6 +7,7 @@
 }
 .md-header {
     background-color: hsla(240, 9%, 75%, 0.33);
+    backdrop-filter: blur(8px);
 }
 [data-md-color-scheme='slate'] .md-header {
     background-color: hsla(240, 4%,11%, 0.33);
@@ -36,13 +37,17 @@
 .heart {
     animation: heart 1000ms infinite;
 }
-.md-header {
-    backdrop-filter: blur(8px);
-}
 .md-tabs__link {
     font-size: .8rem !important;
     font-weight: 600 !important;
 }
 .md-typeset {
     font-size: 16px;
+}
+.md-typeset .emojione, .md-typeset .gemoji, .md-typeset .twemoji {
+    height: 100%;
+    vertical-align: -0.2em !important;
+}
+.md-typeset .middle {
+    vertical-align: -0.35em !important;
 }

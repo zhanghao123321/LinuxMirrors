@@ -1,5 +1,5 @@
 site_name: LinuxMirrors
-repo_name: GitHub Repository
+repo_name: GitHub
 repo_url: https://github.com/SuperManito/LinuxMirrors
 edit_uri: edit/main/docs/
 copyright: 'Copyright &copy; 2024 <a href="https://github.com/SuperManito" target="_blank"> SuperManito</a> <a href="https://www.netlify.com" target="_blank"><img height="64" width="64" src="/assets/images/icon/netlify.svg" style="vertical-align: -0.6em"></a>'
@@ -94,6 +94,7 @@ markdown_extensions:
   - toc:
       permalink: "#"
       permalink_title: 永久链接
+      toc_depth: 3
       slugify: !!python/object/apply:pymdownx.slugs.slugify
         kwds:
           case: lower
@@ -143,10 +144,7 @@ plugins:
   - glightbox
 nav:
   - "介绍": index.md
-  - "使用方法":
-      - "使用方法": use/index.md
-      - "常见问题": use/help.md
-      - "命令选项": use/command-options.md
+  - "使用方法": use/index.md
   - "软件源列表": mirrors/index.md
   - "其它工具": other/index.md
   - "社区": community/index.md
