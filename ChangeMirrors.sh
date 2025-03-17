@@ -1,6 +1,6 @@
 #!/bin/bash
 ## Author: SuperManito
-## Modified: 2025-03-15
+## Modified: 2025-03-16
 ## License: MIT
 ## GitHub: https://github.com/SuperManito/LinuxMirrors
 ## Website: https://linuxmirrors.cn
@@ -184,7 +184,7 @@ File_LinuxRelease=/etc/os-release
 File_RedHatRelease=/etc/redhat-release
 File_DebianVersion=/etc/debian_version
 File_ArmbianRelease=/etc/armbian-release
-File_RaspberryPiRelease=/etc/rpi-issue
+File_RaspberryPiOSRelease=/etc/rpi-issue
 File_openEulerRelease=/etc/openEuler-release
 File_OpenCloudOSRelease=/etc/opencloudos-release
 File_AnolisOSRelease=/etc/anolis-release
@@ -646,25 +646,25 @@ function collect_system_info() {
     ## 定义系统ID
     SYSTEM_ID="$(cat $File_LinuxRelease | grep -E "^ID=" | awk -F '=' '{print$2}' | sed "s/[\'\"]//g")"
     ## 判定当前系统派系
-    if [ -s $File_DebianVersion ]; then
+    if [ -s "${File_DebianVersion}" ]; then
         SYSTEM_FACTIONS="${SYSTEM_DEBIAN}"
-    elif [ -s $File_OracleLinuxRelease ]; then
+    elif [ -s "${File_OracleLinuxRelease}" ]; then
         output_error "当前操作系统不在本脚本的支持范围内，请前往官网查看支持列表！"
-    elif [ -s $File_RedHatRelease ]; then
+    elif [ -s "${File_RedHatRelease}" ]; then
         SYSTEM_FACTIONS="${SYSTEM_REDHAT}"
-    elif [ -s $File_openEulerRelease ]; then
+    elif [ -s "${File_openEulerRelease}" ]; then
         SYSTEM_FACTIONS="${SYSTEM_OPENEULER}"
-    elif [ -s $File_OpenCloudOSRelease ]; then
+    elif [ -s "${File_OpenCloudOSRelease}" ]; then
         SYSTEM_FACTIONS="${SYSTEM_OPENCLOUDOS}" # 自 9.0 版本起不再基于红帽
-    elif [ -s $File_AnolisOSRelease ]; then
+    elif [ -s "${File_AnolisOSRelease}" ]; then
         SYSTEM_FACTIONS="${SYSTEM_ANOLISOS}" # 自 8.8 版本起不再基于红帽
-    elif [ -s $File_openKylinVersion ]; then
+    elif [ -s "${File_openKylinVersion}" ]; then
         SYSTEM_FACTIONS="${SYSTEM_OPENKYLIN}"
-    elif [ -f $File_ArchLinuxRelease ]; then
+    elif [ -f "${File_ArchLinuxRelease}" ]; then
         SYSTEM_FACTIONS="${SYSTEM_ARCH}"
-    elif [ -f $File_AlpineRelease ]; then
+    elif [ -f "${File_AlpineRelease}" ]; then
         SYSTEM_FACTIONS="${SYSTEM_ALPINE}"
-    elif [ -f $File_GentooRelease ]; then
+    elif [ -f "${File_GentooRelease}" ]; then
         SYSTEM_FACTIONS="${SYSTEM_GENTOO}"
     elif [[ "${SYSTEM_NAME}" == *"openSUSE"* ]]; then
         SYSTEM_FACTIONS="${SYSTEM_OPENSUSE}"
@@ -685,7 +685,7 @@ function collect_system_info() {
         SYSTEM_JUDGMENT="$(lsb_release -is)"
         SYSTEM_VERSION_CODENAME="${DEBIAN_CODENAME:-"$(lsb_release -cs)"}"
         # Raspberry Pi OS
-        if [ -s $File_RaspberryPiRelease ]; then
+        if [ -s "${File_RaspberryPiOSRelease}" ]; then
             SYSTEM_JUDGMENT="${SYSTEM_RASPBERRY_PI_OS}"
             SYSTEM_PRETTY_NAME="${SYSTEM_RASPBERRY_PI_OS}"
         fi
@@ -1159,10 +1159,6 @@ function choose_install_epel_packages() {
         if [[ "${SYSTEM_JUDGMENT}" == "${SYSTEM_FEDORA}" ]] || [[ "${INSTALL_EPEL}" == "false" ]]; then
             INSTALL_EPEL="false"
             return
-        elif [ "${SYSTEM_VERSION_NUMBER_MAJOR}" == 10 ]; then
-            # 跳过尚未正式推出的 10 版本
-            INSTALL_EPEL="false"
-            return
         else
             check_install_status
         fi
@@ -1319,18 +1315,18 @@ function backup_original_mirrors() {
             ## 自新版本的 Debian 与 Ubuntu 起，软件源文件格式统一为 DEB822 格式，涉及 Debian 12 的容器镜像、Ubuntu 24.04 和未来尚未发布的版本
             # Debian DEB822 格式源文件
             if [[ "${SYSTEM_JUDGMENT}" == "${SYSTEM_DEBIAN}" ]]; then
-                [ -f $File_DebianSources ] && backup_file $File_DebianSources $File_DebianSourcesBackup "debian.sources"
+                [ -f "${File_DebianSources}" ] && backup_file $File_DebianSources $File_DebianSourcesBackup "debian.sources"
             fi
             # Ubuntu DEB822 格式源文件
             if [[ "${SYSTEM_JUDGMENT}" == "${SYSTEM_UBUNTU}" ]]; then
-                [ -f $File_UbuntuSources ] && backup_file $File_UbuntuSources $File_UbuntuSourcesBackup "ubuntu.sources"
+                [ -f "${File_UbuntuSources}" ] && backup_file $File_UbuntuSources $File_UbuntuSourcesBackup "ubuntu.sources"
             fi
             # Armbian
-            if [ -f $File_ArmbianRelease ]; then
+            if [ -f "${File_ArmbianRelease}" ]; then
                 backup_file $File_ArmbianSourceList $File_ArmbianSourceListBackup "armbian.list"
             fi
             # Proxmox VE
-            if [ -f $File_ProxmoxVersion ]; then
+            if [ -f "${File_ProxmoxVersion}" ]; then
                 backup_file $File_ProxmoxSourceList $File_ProxmoxSourceListBackup "pve-no-subscription.list"
             fi
             # Linux Mint
@@ -1366,7 +1362,7 @@ function backup_original_mirrors() {
             backup_file $File_GentooReposConf $File_GentooReposConfBackup "gentoo.conf"
             ;;
         "${SYSTEM_NIXOS}")
-            [ ! -d $Dir_NixConfig ] && mkdir -p $Dir_NixConfig
+            [ ! -d "${Dir_NixConfig}" ] && mkdir -p "${Dir_NixConfig}"
             # /etc/nix/nix.conf
             backup_file $File_NixConf $File_NixConfBackup "nix.conf"
             ;;
@@ -1379,38 +1375,38 @@ function remove_original_mirrors() {
     case "${SYSTEM_FACTIONS}" in
     "${SYSTEM_DEBIAN}" | "${SYSTEM_OPENKYLIN}")
         if [[ "${SYSTEM_JUDGMENT}" != "${SYSTEM_LINUX_MINT}" ]]; then
-            [ -f $File_DebianSourceList ] && sed -i '1,$d' $File_DebianSourceList
+            [ -f "${File_DebianSourceList}" ] && sed -i '1,$d' $File_DebianSourceList
         fi
-        [ -d $Dir_DebianExtendSource ] || mkdir -p $Dir_DebianExtendSource
+        [ -d "${Dir_DebianExtendSource}" ] || mkdir -p $Dir_DebianExtendSource
         ## 自新版本的 Debian 与 Ubuntu 起，软件源文件格式统一为 DEB822 格式，涉及 Debian 12 的容器镜像、Ubuntu 24.04 和未来尚未发布的版本
         # Debian DEB822 格式源文件
         if [[ "${SYSTEM_JUDGMENT}" == "${SYSTEM_DEBIAN}" ]]; then
-            [ -f $File_DebianSources ] && rm -rf $File_DebianSources
+            [ -f "${File_DebianSources}" ] && rm -rf "${File_DebianSources}"
         fi
         # Ubuntu DEB822 格式源文件
         if [[ "${SYSTEM_JUDGMENT}" == "${SYSTEM_UBUNTU}" ]]; then
-            [ -f $File_UbuntuSources ] && rm -rf $File_UbuntuSources
+            [ -f "${File_UbuntuSources}" ] && rm -rf "${File_UbuntuSources}"
         fi
         # Armbian
-        if [ -f $File_ArmbianRelease ]; then
-            [ -f $File_ArmbianSourceList ] && sed -i '1,$d' $File_ArmbianSourceList
+        if [ -f "${File_ArmbianRelease}" ]; then
+            [ -f "${File_ArmbianSourceList}" ] && sed -i '1,$d' $File_ArmbianSourceList
         fi
         # Proxmox VE
-        if [ -f $File_ProxmoxVersion ]; then
-            [ -f $File_ProxmoxSourceList ] && sed -i '1,$d' $File_ProxmoxSourceList
+        if [ -f "${File_ProxmoxVersion}" ]; then
+            [ -f "${File_ProxmoxSourceList}" ] && sed -i '1,$d' $File_ProxmoxSourceList
         fi
         # Linux Mint
         if [[ "${SYSTEM_JUDGMENT}" == "${SYSTEM_LINUX_MINT}" ]]; then
-            [ -f $File_LinuxMintSourceList ] && sed -i '1,$d' $File_LinuxMintSourceList
+            [ -f "${File_LinuxMintSourceList}" ] && sed -i '1,$d' $File_LinuxMintSourceList
         fi
         # Raspberry Pi OS
         if [[ "${SYSTEM_JUDGMENT}" == "${SYSTEM_RASPBERRY_PI_OS}" ]]; then
-            [ -f $File_RaspberryPiSourceList ] && sed -i '1,$d' $File_RaspberryPiSourceList
+            [ -f "${File_RaspberryPiSourceList}" ] && sed -i '1,$d' $File_RaspberryPiSourceList
         fi
         ;;
     "${SYSTEM_REDHAT}")
-        if [ ! -d $Dir_YumRepos ]; then
-            mkdir -p $Dir_YumRepos
+        if [ ! -d "${Dir_YumRepos}" ]; then
+            mkdir -p "${Dir_YumRepos}"
             return
         fi
         if [[ "${SYSTEM_JUDGMENT}" == "${SYSTEM_FEDORA}" ]]; then
@@ -1429,7 +1425,7 @@ function remove_original_mirrors() {
                     rm -rf $Dir_YumRepos/centos.repo $Dir_YumRepos/centos-addons.repo
                     ;;
                 *)
-                    if [ -f $Dir_YumRepos/epel.repo ]; then
+                    if [ -f "${Dir_YumRepos}/epel.repo" ]; then
                         ls $Dir_YumRepos/ | grep -Ev epel | xargs rm -rf
                     else
                         rm -rf $Dir_YumRepos/*
@@ -1438,7 +1434,7 @@ function remove_original_mirrors() {
                 esac
                 ;;
             "${SYSTEM_CENTOS}")
-                if [ -f $Dir_YumRepos/epel.repo ]; then
+                if [ -f "${Dir_YumRepos}/epel.repo" ]; then
                     ls $Dir_YumRepos/ | grep -Ev epel | xargs rm -rf
                 else
                     rm -rf $Dir_YumRepos/*
@@ -1477,37 +1473,37 @@ function remove_original_mirrors() {
         fi
         ;;
     "${SYSTEM_OPENEULER}")
-        if [ ! -d $Dir_YumRepos ]; then
+        if [ ! -d "${Dir_YumRepos}" ]; then
             mkdir -p $Dir_YumRepos
             return
         fi
         rm -rf $Dir_YumRepos/openEuler.repo
         ;;
     "${SYSTEM_OPENCLOUDOS}")
-        if [ ! -d $Dir_YumRepos ]; then
+        if [ ! -d "${Dir_YumRepos}" ]; then
             mkdir -p $Dir_YumRepos
             return
         fi
         rm -rf $Dir_YumRepos/OpenCloudOS*
         ;;
     "${SYSTEM_ANOLISOS}")
-        if [ ! -d $Dir_YumRepos ]; then
+        if [ ! -d "${Dir_YumRepos}" ]; then
             mkdir -p $Dir_YumRepos
             return
         fi
         rm -rf $Dir_YumRepos/AnolisOS*
         ;;
     "${SYSTEM_OPENSUSE}")
-        [ -d $Dir_ZYppRepos ] && rm -rf $Dir_ZYppRepos/repo-*
+        [ -d "${Dir_ZYppRepos}" ] && rm -rf $Dir_ZYppRepos/repo-*
         ;;
     "${SYSTEM_ARCH}")
-        [ -f $File_ArchLinuxMirrorList ] && sed -i '1,$d' $File_ArchLinuxMirrorList
+        [ -f "${File_ArchLinuxMirrorList}" ] && sed -i '1,$d' $File_ArchLinuxMirrorList
         ;;
     "${SYSTEM_ALPINE}")
-        [ -f $File_AlpineRepositories ] && sed -i '1,$d' $File_AlpineRepositories
+        [ -f "${File_AlpineRepositories}" ] && sed -i '1,$d' $File_AlpineRepositories
         ;;
     "${SYSTEM_GENTOO}")
-        [ -f $File_GentooReposConf ] && sed -i '1,$d' $File_GentooReposConf
+        [ -f "${File_GentooReposConf}" ] && sed -i '1,$d' $File_GentooReposConf
         ;;
     esac
 }
@@ -1520,7 +1516,7 @@ function change_mirrors_main() {
         function diff_file() {
             local diff_file=$1
             local origin_file=$2
-            if [[ -s $diff_file ]] && [[ -s $origin_file ]]; then
+            if [ -s "${diff_file}" ] && [ -s "${origin_file}" ]; then
                 if [[ "$(cat "${diff_file}")" != "$(cat "${origin_file}")" ]]; then
                     echo -e "\n${BLUE}${diff_file}${PLAIN} -> ${BLUE}${origin_file}${PLAIN}"
                     diff "${diff_file}" "${origin_file}" -d --color=always -I -B -E
@@ -1543,11 +1539,11 @@ function change_mirrors_main() {
                     diff_file $File_DebianSourceListBackup $File_DebianSourceList
                 fi
                 # Armbian
-                if [ -f $File_ArmbianRelease ]; then
+                if [ -f "${File_ArmbianRelease}" ]; then
                     diff_file $File_ArmbianSourceListBackup $File_ArmbianSourceList
                 fi
                 # Proxmox VE
-                if [ -f $File_ProxmoxVersion ]; then
+                if [ -f "${File_ProxmoxVersion}" ]; then
                     diff_file $File_ProxmoxSourceListBackup $File_ProxmoxSourceList
                 fi
                 # Linux Mint
@@ -1974,11 +1970,11 @@ deb ${base_url} ${base_system_codename} ${repository_sections}
     esac
     ## 处理其它衍生操作系统的专用源
     # Armbian
-    if [ -f $File_ArmbianRelease ]; then
+    if [ -f "${File_ArmbianRelease}" ]; then
         echo "deb [signed-by=/usr/share/keyrings/armbian.gpg] ${WEB_PROTOCOL}://${SOURCE}/armbian ${SYSTEM_VERSION_CODENAME} main ${SYSTEM_VERSION_CODENAME}-utils ${SYSTEM_VERSION_CODENAME}-desktop" >>$File_ArmbianSourceList
     fi
     # Proxmox VE
-    if [ -f $File_ProxmoxVersion ]; then
+    if [ -f "${File_ProxmoxVersion}" ]; then
         echo "deb ${WEB_PROTOCOL}://${SOURCE}/proxmox/debian/pve ${SYSTEM_VERSION_CODENAME} pve-no-subscription
 # deb ${WEB_PROTOCOL}://${SOURCE}/proxmox/debian/pbs ${SYSTEM_VERSION_CODENAME} pbs-no-subscription
 # deb ${WEB_PROTOCOL}://${SOURCE}/proxmox/debian/pbs-client ${SYSTEM_VERSION_CODENAME} pbs-client-no-subscription
@@ -2388,7 +2384,7 @@ function change_mirrors_Gentoo() {
         if [ $? -eq 0 ]; then
             sed -i "/^GENTOO_MIRRORS=/d" $File_GentooMakeConf
         fi
-        [ -f $File_GentooReposConf ] && rm -rf $File_GentooReposConf
+        [ -f "${File_GentooReposConf}" ] && rm -rf $File_GentooReposConf
         return
     fi
     ## 修改源
@@ -2453,13 +2449,13 @@ function change_mirrors_or_install_EPEL() {
         return
     fi
     ## 确定安装版本（不支持安装的系统直接跳出）
-    local target_version
+    local epel_version
     case "${SYSTEM_FACTIONS}" in
     "${SYSTEM_REDHAT}")
         if [[ "${SYSTEM_JUDGMENT}" == "${SYSTEM_FEDORA}" ]]; then
             return
         else
-            target_version="${SYSTEM_VERSION_NUMBER_MAJOR}"
+            epel_version="${SYSTEM_VERSION_NUMBER_MAJOR}"
         fi
         ;;
     *)
@@ -2467,32 +2463,44 @@ function change_mirrors_or_install_EPEL() {
         ;;
     esac
     ## 跳过较旧的 EOF 版本（epel 7 已被官方移动至 archive 仓库，目前没有多少镜像站同步，暂无适配的必要）
-    if [[ "${target_version}" == "7" ]]; then
+    if [[ "${epel_version}" == "7" ]]; then
         [ -z "${SOURCE_EPEL_BRANCH}" ] && SOURCE_EPEL_BRANCH="epel-archive"
-        return
-    fi
-    ## 跳过尚未正式推出的 10 版本
-    if [[ "${target_version}" == "10" ]]; then
-        return
+        echo -e "\n$WARN Extra Packages for Enterprise Linux 7 已结束生命周期并被官方移至归档库！"
+        echo -e "\n$TIP 目前部分镜像站没有同步该归档仓库，若换源后出现错误那么请先检查目标镜像站是否支持该仓库。\n\n${GREEN}➜${PLAIN}  ${WEB_PROTOCOL}://${SOURCE_EPEL:-"${SOURCE}"}/${SOURCE_EPEL_BRANCH:-"epel"}"
     fi
     ## 安装 EPEL 软件包
     if [ $VERIFICATION_EPEL -ne 0 ]; then
         echo -e "\n${WORKING} 安装 epel-release 软件包...\n"
         local package_manager="$(get_package_manager)"
-        $package_manager install -y https://mirrors.cloud.tencent.com/epel/epel-release-latest-${target_version}.noarch.rpm
+        local package_url="https://mirrors.cloud.tencent.com/epel/epel-release-latest-${epel_version}.noarch.rpm"
+        case "${epel_version}" in
+        7)
+            package_url="https://mirrors.cloud.tencent.com/epel-archive/7/${DEVICE_ARCH_RAW}/Packages/e/epel-release-7-14.noarch.rpm"
+            ;;
+        9)
+            ## CentOS Stream 9 特殊，有两个不同的发行包 epel-release epel-next-release
+            if [[ "${SYSTEM_JUDGMENT}" == "${SYSTEM_CENTOS_STREAM}" || "${SYSTEM_JUDGMENT}" == "${SYSTEM_RHEL}" ]]; then
+                package_url="https://mirrors.cloud.tencent.com/epel/epel{,-next}-release-latest-9.noarch.rpm"
+            fi
+            ;;
+        esac
+        $package_manager install -y "${package_url}"
         rm -rf $Dir_YumRepos/epel*
     fi
     ## 删除原有 repo 源文件
-    if [ -d $Dir_YumRepos ]; then
+    if [ -d "${Dir_YumRepos}" ]; then
         ls $Dir_YumRepos | grep epel -q
         [ $? -eq 0 ] && rm -rf $Dir_YumRepos/epel*
     fi
-    if [ -d $Dir_YumReposBackup ]; then
+    if [ -d "${Dir_YumReposBackup}" ]; then
         ls $Dir_YumReposBackup | grep epel -q
         [ $? -eq 0 ] && rm -rf $Dir_YumReposBackup/epel*
     fi
     ## 生成 repo 源文件
     gen_repo_files_EPEL "${SYSTEM_VERSION_NUMBER_MAJOR}"
+    if [[ "${epel_version}" == 9 ]] && [[ "${SYSTEM_JUDGMENT}" == "${SYSTEM_CENTOS_STREAM}" || "${SYSTEM_JUDGMENT}" == "${SYSTEM_RHEL}" ]]; then
+        gen_repo_files_EPEL_NEXT "${SYSTEM_VERSION_NUMBER_MAJOR}"
+    fi
     if [[ "${USE_OFFICIAL_SOURCE}" == "true" ]]; then
         return
     fi
@@ -2500,9 +2508,17 @@ function change_mirrors_or_install_EPEL() {
     sed -e "s|^#baseurl=http\(s\)\?|baseurl=${WEB_PROTOCOL}|g" \
         -e "s|^metalink=|#metalink=|g" \
         -e "s|download.example/pub/epel|${SOURCE_EPEL:-"${SOURCE}"}/${SOURCE_EPEL_BRANCH:-"epel"}|g" \
-        -e "s|download.fedoraproject.org/pub/epel|${SOURCE_EPEL:-"${SOURCE}"}/${SOURCE_EPEL_BRANCH:-"epel"}|g" \
         -i \
         $Dir_YumRepos/epel*
+    ## 启用所需的仓库（EPEL 需要结合 PowerTools / CRB 使用）
+    case "${epel_version}" in
+    9 | 10)
+        dnf config-manager --set-enabled crb >/dev/null 2>&1
+        ;;
+    8)
+        dnf config-manager --set-enabled powertools >/dev/null 2>&1
+        ;;
+    esac
 }
 
 ## 选择系统包管理器
@@ -2543,7 +2559,8 @@ function interactive_select_mirror() {
         tput rc
         tput cnorm
         tput rmcup
-        exit
+        echo -e "\n${TIP} ${RED}操作已取消${PLAIN}\n"
+        exit 130
     }
     function draw_menu() {
         tput clear
@@ -2617,22 +2634,27 @@ function interactive_select_boolean() {
     _SELECT_RESULT=""
     local selected=0
     local message="$1"
+    local menu_height=3 # 菜单总高度(标题行+空行+选项行)
+    local original_line
+    function store_position() {
+        # 保存菜单开始前的行位置
+        original_line=$(tput lines)
+    }
     function clear_menu() {
-        tput rc
-        for ((i = 0; i < 2 + 2; i++)); do
-            echo -e "\r\033[K"
+        # 向上移动到菜单开始位置并清除菜单
+        for ((i = 0; i < ${menu_height}; i++)); do
+            tput cuu1 # 光标上移一行
+            tput el   # 清除当前行
         done
-        tput rc
     }
     function cleanup() {
         clear_menu
-        tput rc
         tput cnorm
-        tput rmcup
-        exit
+        echo -e "\n${TIP} ${RED}操作已取消${PLAIN}\n"
+        exit 130
     }
     function draw_menu() {
-        tput rc
+        # 绘制菜单不改变光标位置
         echo -e "╭─ ${message}"
         echo -e "│"
         if [ "$selected" -eq 0 ]; then
@@ -2641,16 +2663,7 @@ function interactive_select_boolean() {
             echo -e "╰─ \033[2m○ 是 / \033[0m\033[32m●\033[0m 否"
         fi
     }
-    function draw_menu_confirmed() {
-        tput rc
-        echo -e "╭─ ${message}"
-        echo -e "│"
-        if [ "$selected" -eq 0 ]; then
-            echo -e "╰─ \033[32m●\033[0m \033[1m是\033[0m\033[2m / ○ 否\033[0m"
-        else
-            echo -e "╰─ \033[2m○ 是 / \033[0m\033[32m●\033[0m \033[1m否\033[0m"
-        fi
-    }
+
     function read_key() {
         IFS= read -rsn1 key
         if [[ $key == $'\x1b' ]]; then
@@ -2659,10 +2672,10 @@ function interactive_select_boolean() {
         fi
         echo "$key"
     }
-    tput sc                 # 保存光标位置
-    tput civis              # 隐藏光标
-    trap "cleanup" INT TERM # 捕捉脚本结束时恢复光标
-    draw_menu               # 初始化菜单位置
+    tput civis     # 隐藏光标
+    store_position # 记录当前位置
+    trap "cleanup" INT TERM
+    draw_menu # 初始化菜单位置
     # 处理选择
     while true; do
         key=$(read_key)
@@ -2671,32 +2684,36 @@ function interactive_select_boolean() {
             # 左箭头 / A
             if [ "$selected" -gt 0 ]; then
                 selected=$((selected - 1))
+                clear_menu
+                draw_menu
             fi
             ;;
         "[C" | "d" | "D")
             # 右箭头 / D
             if [ "$selected" -lt 1 ]; then
                 selected=$((selected + 1))
+                clear_menu
+                draw_menu
             fi
             ;;
         "")
             # Enter 键
-            draw_menu_confirmed
+            clear_menu # 先清除菜单
             break
             ;;
         *) ;;
         esac
-        draw_menu
     done
-    # clear_menu # 清除菜单
-    tput cnorm # 恢复光标
-    # tput rc    # 恢复光标位置
-    # 处理结果
+    echo -e "╭─ ${message}"
+    echo -e "│"
     if [ "$selected" -eq 0 ]; then
+        echo -e "╰─ \033[32m●\033[0m \033[1m是\033[0m\033[2m / ○ 否\033[0m"
         _SELECT_RESULT="true"
     else
+        echo -e "╰─ \033[2m○ 是 / \033[0m\033[32m●\033[0m \033[1m否\033[0m"
         _SELECT_RESULT="false"
     fi
+    tput cnorm # 恢复光标
 }
 
 ##############################################################################
@@ -5898,6 +5915,72 @@ EOF
 ## 生成 EPEL 附加软件包 repo 源文件
 function gen_repo_files_EPEL() {
     case "${1}" in
+    10)
+        cat <<'EOF' >$Dir_YumRepos/epel.repo
+[epel]
+name=Extra Packages for Enterprise Linux $releasever - $basearch
+#baseurl=https://download.example/pub/epel/$releasever_major${releasever_minor:+.$releasever_minor}/Everything/$basearch/
+metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-$releasever_major${releasever_minor:+.$releasever_minor}&arch=$basearch
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-$releasever_major
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=24h
+countme=1
+enabled=1
+
+[epel-debuginfo]
+name=Extra Packages for Enterprise Linux $releasever - $basearch - Debug
+#baseurl=https://download.example/pub/epel/$releasever_major${releasever_minor:+.$releasever_minor}/Everything/$basearch/debug/
+metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-debug-$releasever_major${releasever_minor:+.$releasever_minor}&arch=$basearch
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-$releasever_major
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=24h
+enabled=0
+
+[epel-source]
+name=Extra Packages for Enterprise Linux $releasever - $basearch - Source
+#baseurl=https://download.example/pub/epel/$releasever_major${releasever_minor:+.$releasever_minor}/Everything/source/tree/
+metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-source-$releasever_major${releasever_minor:+.$releasever_minor}&arch=$basearch
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-$releasever_major
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=24h
+enabled=0
+EOF
+        cat <<'EOF' >$Dir_YumRepos/epel-testing.repo
+[epel-testing]
+name=Extra Packages for Enterprise Linux $releasever - Testing - $basearch
+#baseurl=https://download.example/pub/epel/testing/$releasever_major${releasever_minor:+.$releasever_minor}/Everything/$basearch/
+metalink=https://mirrors.fedoraproject.org/metalink?repo=testing-epel$releasever_major${releasever_minor:+.$releasever_minor}&arch=$basearch
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-$releasever_major
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=24h
+countme=1
+enabled=0
+
+[epel-testing-debuginfo]
+name=Extra Packages for Enterprise Linux $releasever - Testing - $basearch - Debug
+#baseurl=https://download.example/pub/epel/testing/$releasever_major${releasever_minor:+.$releasever_minor}/Everything/$basearch/debug/
+metalink=https://mirrors.fedoraproject.org/metalink?repo=testing-debug-epel$releasever_major${releasever_minor:+.$releasever_minor}&arch=$basearch
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-$releasever_major
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=24h
+enabled=0
+
+[epel-testing-source]
+name=Extra Packages for Enterprise Linux $releasever - Testing - $basearch - Source
+#baseurl=https://download.example/pub/epel/testing/$releasever_major${releasever_minor:+.$releasever_minor}/Everything/source/tree/
+metalink=https://mirrors.fedoraproject.org/metalink?repo=testing-source-epel$releasever_major${releasever_minor:+.$releasever_minor}&arch=$basearch
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-$releasever_major
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=24h
+enabled=0
+EOF
+        ;;
     9)
         cat <<'EOF' >$Dir_YumRepos/epel.repo
 [epel]
@@ -6097,8 +6180,8 @@ EOF
         cat <<'EOF' >$Dir_YumRepos/epel.repo
 [epel]
 name=Extra Packages for Enterprise Linux 7 - $basearch
-#baseurl=http://download.fedoraproject.org/pub/epel/7/$basearch
-metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch
+#baseurl=http://download.example/pub/epel/7/$basearch
+metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch&infra=$infra&content=$contentdir
 failovermethod=priority
 enabled=1
 gpgcheck=1
@@ -6106,8 +6189,8 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
 
 [epel-debuginfo]
 name=Extra Packages for Enterprise Linux 7 - $basearch - Debug
-#baseurl=http://download.fedoraproject.org/pub/epel/7/$basearch/debug
-metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-debug-7&arch=$basearch
+#baseurl=http://download.example/pub/epel/7/$basearch/debug
+metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-debug-7&arch=$basearch&infra=$infra&content=$contentdir
 failovermethod=priority
 enabled=0
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
@@ -6115,8 +6198,8 @@ gpgcheck=1
 
 [epel-source]
 name=Extra Packages for Enterprise Linux 7 - $basearch - Source
-#baseurl=http://download.fedoraproject.org/pub/epel/7/SRPMS
-metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-source-7&arch=$basearch
+#baseurl=http://download.example/pub/epel/7/source/tree/
+metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-source-7&arch=$basearch&infra=$infra&content=$contentdir
 failovermethod=priority
 enabled=0
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
@@ -6125,8 +6208,8 @@ EOF
         cat <<'EOF' >$Dir_YumRepos/epel-testing.repo
 [epel-testing]
 name=Extra Packages for Enterprise Linux 7 - Testing - $basearch
-#baseurl=http://download.fedoraproject.org/pub/epel/testing/7/$basearch
-metalink=https://mirrors.fedoraproject.org/metalink?repo=testing-epel7&arch=$basearch
+#baseurl=http://download.example/pub/epel/testing/7/$basearch
+metalink=https://mirrors.fedoraproject.org/metalink?repo=testing-epel7&arch=$basearch&infra=$infra&content=$contentdir
 failovermethod=priority
 enabled=0
 gpgcheck=1
@@ -6134,8 +6217,8 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
 
 [epel-testing-debuginfo]
 name=Extra Packages for Enterprise Linux 7 - Testing - $basearch - Debug
-#baseurl=http://download.fedoraproject.org/pub/epel/testing/7/$basearch/debug
-metalink=https://mirrors.fedoraproject.org/metalink?repo=testing-debug-epel7&arch=$basearch
+#baseurl=http://download.example/pub/epel/testing/7/$basearch/debug
+metalink=https://mirrors.fedoraproject.org/metalink?repo=testing-debug-epel7&arch=$basearch&infra=$infra&content=$contentdir
 failovermethod=priority
 enabled=0
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
@@ -6143,11 +6226,71 @@ gpgcheck=1
 
 [epel-testing-source]
 name=Extra Packages for Enterprise Linux 7 - Testing - $basearch - Source
-#baseurl=http://download.fedoraproject.org/pub/epel/testing/7/SRPMS
-metalink=https://mirrors.fedoraproject.org/metalink?repo=testing-source-epel7&arch=$basearch
+#baseurl=http://download.example/pub/epel/testing/7/source/tree/
+metalink=https://mirrors.fedoraproject.org/metalink?repo=testing-source-epel7&arch=$basearch&infra=$infra&content=$contentdir
 failovermethod=priority
 enabled=0
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+gpgcheck=1
+EOF
+        ;;
+    esac
+}
+
+## 生成 EPEL 附加软件包 NEXT repo 源文件
+function gen_repo_files_EPEL_NEXT() {
+    case "${1}" in
+    9)
+        cat <<'EOF' >$Dir_YumRepos/epel-next.repo
+[epel-next]
+name=Extra Packages for Enterprise Linux 9 - Next - $basearch
+#baseurl=https://download.example/pub/epel/next/9/Everything/$basearch/
+metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-next-9&arch=$basearch&infra=$infra&content=$contentdir
+enabled=1
+gpgcheck=1
+countme=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-9
+
+[epel-next-debuginfo]
+name=Extra Packages for Enterprise Linux 9 - Next - $basearch - Debug
+#baseurl=https://download.example/pub/epel/next/9/Everything/$basearch/debug/
+metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-next-debug-9&arch=$basearch&infra=$infra&content=$contentdir
+enabled=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-9
+gpgcheck=1
+
+[epel-next-source]
+name=Extra Packages for Enterprise Linux 9 - Next - $basearch - Source
+#baseurl=https://download.example/pub/epel/next/9/Everything/source/tree/
+metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-next-source-9&arch=$basearch&infra=$infra&content=$contentdir
+enabled=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-9
+gpgcheck=1
+EOF
+        cat <<'EOF' >$Dir_YumRepos/epel-next-testing.repo
+[epel-next-testing]
+name=Extra Packages for Enterprise Linux 9 - Next - Testing - $basearch
+#baseurl=https://download.example/pub/epel/testing/next/9/Everything/$basearch/
+metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-testing-next-9&arch=$basearch&infra=$infra&content=$contentdir
+enabled=0
+gpgcheck=1
+countme=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-9
+
+[epel-next-testing-debuginfo]
+name=Extra Packages for Enterprise Linux 9 - Next - Testing - $basearch - Debug
+#baseurl=https://download.example/pub/epel/testing/next/9/Everything/$basearch/debug/
+metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-testing-next-debug-9&arch=$basearch&infra=$infra&content=$contentdir
+enabled=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-9
+gpgcheck=1
+
+[epel-next-testing-source]
+name=Extra Packages for Enterprise Linux 9 - Next - Testing - $basearch - Source
+#baseurl=https://download.example/pub/epel/testing/next/9/Everything/source/tree/
+metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-testing-next-source-9&arch=$basearch&infra=$infra&content=$contentdir
+enabled=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-9
 gpgcheck=1
 EOF
         ;;

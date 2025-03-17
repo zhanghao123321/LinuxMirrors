@@ -1,6 +1,6 @@
 #!/bin/bash
 ## Author: SuperManito
-## Modified: 2025-03-15
+## Modified: 2025-03-16
 ## License: MIT
 ## GitHub: https://github.com/SuperManito/LinuxMirrors
 ## Website: https://linuxmirrors.cn
@@ -84,7 +84,7 @@ File_LinuxRelease=/etc/os-release
 File_RedHatRelease=/etc/redhat-release
 File_DebianVersion=/etc/debian_version
 File_ArmbianRelease=/etc/armbian-release
-File_RaspberryPiRelease=/etc/rpi-issue
+File_RaspberryPiOSRelease=/etc/rpi-issue
 File_openEulerRelease=/etc/openEuler-release
 File_OpenCloudOSRelease=/etc/opencloudos-release
 File_AnolisOSRelease=/etc/anolis-release
@@ -358,19 +358,19 @@ function collect_system_info() {
     ## 定义系统ID
     SYSTEM_ID="$(cat $File_LinuxRelease | grep -E "^ID=" | awk -F '=' '{print$2}' | sed "s/[\'\"]//g")"
     ## 判定当前系统派系
-    if [ -s $File_DebianVersion ]; then
+    if [ -s "${File_DebianVersion}" ]; then
         SYSTEM_FACTIONS="${SYSTEM_DEBIAN}"
-    elif [ -s $File_RedHatRelease ]; then
+    elif [ -s "${File_RedHatRelease}" ]; then
         SYSTEM_FACTIONS="${SYSTEM_REDHAT}"
-    elif [ -s $File_openEulerRelease ]; then
+    elif [ -s "${File_openEulerRelease}" ]; then
         SYSTEM_FACTIONS="${SYSTEM_OPENEULER}"
-    elif [ -s $File_OpenCloudOSRelease ]; then
+    elif [ -s "${File_OpenCloudOSRelease}" ]; then
         # 拦截 OpenCloudOS 9 及以上版本，不支持从 Docker 官方仓库安装
         if [[ "${SYSTEM_VERSION_NUMBER_MAJOR}" -ge 9 ]]; then
             output_error "不支持当前操作系统，请参考如下命令自行安装：\n\ndnf install -y docker\nsystemctl enable --now docker"
         fi
         SYSTEM_FACTIONS="${SYSTEM_OPENCLOUDOS}" # 自 9.0 版本起不再基于红帽
-    elif [ -s $File_AnolisOSRelease ]; then
+    elif [ -s "${File_AnolisOSRelease}" ]; then
         # 拦截 Anolis OS 8.8 及以上版本，不支持从 Docker 官方仓库安装，23 版本支持
         if [[ "${SYSTEM_VERSION_NUMBER_MAJOR}" == 8 ]]; then
             output_error "不支持当前操作系统，请参考如下命令自行安装：\n\ndnf install -y docker\nsystemctl enable --now docker"
@@ -391,7 +391,7 @@ function collect_system_info() {
         SYSTEM_JUDGMENT="$(lsb_release -is)"
         SYSTEM_VERSION_CODENAME="${DEBIAN_CODENAME:-"$(lsb_release -cs)"}"
         # Raspberry Pi OS
-        if [ -s $File_RaspberryPiRelease ]; then
+        if [ -s "${File_RaspberryPiOSRelease}" ]; then
             SYSTEM_JUDGMENT="${SYSTEM_RASPBERRY_PI_OS}"
             SYSTEM_PRETTY_NAME="${SYSTEM_RASPBERRY_PI_OS}"
         fi
@@ -700,7 +700,7 @@ function close_firewall_service() {
         if [[ "${CLOSE_FIREWALL}" == "true" ]]; then
             local SelinuxConfig=/etc/selinux/config
             systemctl disable --now firewalld >/dev/null 2>&1
-            [ -s $SelinuxConfig ] && sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" $SelinuxConfig && setenforce 0 >/dev/null 2>&1
+            [ -s "${SelinuxConfig}" ] && sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" $SelinuxConfig && setenforce 0 >/dev/null 2>&1
         fi
     fi
 }
@@ -809,7 +809,7 @@ function configure_docker_ce_mirror() {
         ## 处理 GPG 密钥
         local file_keyring="/etc/apt/keyrings/docker.asc"
         apt-key del 9DC8 5822 9FC7 DD38 854A E2D8 8D81 803C 0EBF CD88 >/dev/null 2>&1 # 删除旧的密钥
-        [ -f $file_keyring ] && rm -rf $file_keyring
+        [ -f "${file_keyring}" ] && rm -rf $file_keyring
         install -m 0755 -d /etc/apt/keyrings
         curl -fsSL https://${SOURCE}/linux/${SOURCE_BRANCH}/gpg -o $file_keyring >/dev/null
         if [ $? -ne 0 ]; then
@@ -827,15 +827,12 @@ function configure_docker_ce_mirror() {
         if [[ "${SYSTEM_JUDGMENT}" != "${SYSTEM_FEDORA}" ]]; then
             local target_version
             case "${SYSTEM_VERSION_NUMBER_MAJOR}" in
-            7 | 8 | 9)
+            7 | 8 | 9 | 10)
                 target_version="${SYSTEM_VERSION_NUMBER_MAJOR}"
                 ;;
-            10)
-                ## 跳过尚未正式推出的 10 版本
-                target_version="9"
-                ;;
             *)
-                target_version="9" # 使用最新的版本
+                ## 目前红帽系衍生系统还没有普及 10 版本
+                target_version="9" # 使用较新的版本
                 ;;
             esac
             sed -i "s|\$releasever|${target_version}|g" $Dir_YumRepos/docker-ce.repo
@@ -881,7 +878,7 @@ function install_docker_engine() {
             esac
         else
             export_version_list
-            if [ ! -s $DockerVersionFile ]; then
+            if [ ! -s "${DockerVersionFile}" ]; then
                 rm -rf $DockerVersionFile
                 output_error "查询 Docker Engine 版本列表失败！"
             fi
@@ -954,8 +951,8 @@ function install_docker_engine() {
         if [[ "${REGISTRY_SOURCEL}" == "registry.hub.docker.com" ]]; then
             return
         fi
-        if [ -d $DockerDir ] && [ -e $DockerConfig ]; then
-            if [ -e $DockerConfigBackup ]; then
+        if [ -d "${DockerDir}" ] && [ -e "${DockerConfig}" ]; then
+            if [ -e "${DockerConfigBackup}" ]; then
                 if [[ "${IGNORE_BACKUP_TIPS}" == "false" ]]; then
                     if [[ "${CAN_USE_ADVANCED_INTERACTIVE_SELECTION}" == "true" ]]; then
                         echo ''
@@ -1114,7 +1111,8 @@ function interactive_select_mirror() {
         tput rc
         tput cnorm
         tput rmcup
-        exit
+        echo -e "\n${TIP} ${RED}操作已取消${PLAIN}\n"
+        exit 130
     }
     function draw_menu() {
         tput clear
@@ -1188,22 +1186,27 @@ function interactive_select_boolean() {
     _SELECT_RESULT=""
     local selected=0
     local message="$1"
+    local menu_height=3 # 菜单总高度(标题行+空行+选项行)
+    local original_line
+    function store_position() {
+        # 保存菜单开始前的行位置
+        original_line=$(tput lines)
+    }
     function clear_menu() {
-        tput rc
-        for ((i = 0; i < 2 + 2; i++)); do
-            echo -e "\r\033[K"
+        # 向上移动到菜单开始位置并清除菜单
+        for ((i = 0; i < ${menu_height}; i++)); do
+            tput cuu1 # 光标上移一行
+            tput el   # 清除当前行
         done
-        tput rc
     }
     function cleanup() {
         clear_menu
-        tput rc
         tput cnorm
-        tput rmcup
-        exit
+        echo -e "\n${TIP} ${RED}操作已取消${PLAIN}\n"
+        exit 130
     }
     function draw_menu() {
-        tput rc
+        # 绘制菜单不改变光标位置
         echo -e "╭─ ${message}"
         echo -e "│"
         if [ "$selected" -eq 0 ]; then
@@ -1212,16 +1215,7 @@ function interactive_select_boolean() {
             echo -e "╰─ \033[2m○ 是 / \033[0m\033[32m●\033[0m 否"
         fi
     }
-    function draw_menu_confirmed() {
-        tput rc
-        echo -e "╭─ ${message}"
-        echo -e "│"
-        if [ "$selected" -eq 0 ]; then
-            echo -e "╰─ \033[32m●\033[0m \033[1m是\033[0m\033[2m / ○ 否\033[0m"
-        else
-            echo -e "╰─ \033[2m○ 是 / \033[0m\033[32m●\033[0m \033[1m否\033[0m"
-        fi
-    }
+
     function read_key() {
         IFS= read -rsn1 key
         if [[ $key == $'\x1b' ]]; then
@@ -1230,10 +1224,10 @@ function interactive_select_boolean() {
         fi
         echo "$key"
     }
-    tput sc                 # 保存光标位置
-    tput civis              # 隐藏光标
-    trap "cleanup" INT TERM # 捕捉脚本结束时恢复光标
-    draw_menu               # 初始化菜单位置
+    tput civis     # 隐藏光标
+    store_position # 记录当前位置
+    trap "cleanup" INT TERM
+    draw_menu # 初始化菜单位置
     # 处理选择
     while true; do
         key=$(read_key)
@@ -1242,32 +1236,36 @@ function interactive_select_boolean() {
             # 左箭头 / A
             if [ "$selected" -gt 0 ]; then
                 selected=$((selected - 1))
+                clear_menu
+                draw_menu
             fi
             ;;
         "[C" | "d" | "D")
             # 右箭头 / D
             if [ "$selected" -lt 1 ]; then
                 selected=$((selected + 1))
+                clear_menu
+                draw_menu
             fi
             ;;
         "")
             # Enter 键
-            draw_menu_confirmed
+            clear_menu # 先清除菜单
             break
             ;;
         *) ;;
         esac
-        draw_menu
     done
-    # clear_menu # 清除菜单
-    tput cnorm # 恢复光标
-    # tput rc    # 恢复光标位置
-    # 处理结果
+    echo -e "╭─ ${message}"
+    echo -e "│"
     if [ "$selected" -eq 0 ]; then
+        echo -e "╰─ \033[32m●\033[0m \033[1m是\033[0m\033[2m / ○ 否\033[0m"
         _SELECT_RESULT="true"
     else
+        echo -e "╰─ \033[2m○ 是 / \033[0m\033[32m●\033[0m \033[1m否\033[0m"
         _SELECT_RESULT="false"
     fi
+    tput cnorm # 恢复光标
 }
 
 handle_command_options "$@"
