@@ -1,6 +1,6 @@
 #!/bin/bash
 ## Author: SuperManito
-## Modified: 2025-03-16
+## Modified: 2025-03-20
 ## License: MIT
 ## GitHub: https://github.com/SuperManito/LinuxMirrors
 ## Website: https://linuxmirrors.cn
@@ -244,7 +244,7 @@ WARN="\033[1;43m 警告 ${PLAIN}"
 ERROR="\033[1;31m✘${PLAIN}"
 FAIL="\033[1;31m✘${PLAIN}"
 TIP="\033[1;44m 提示 ${PLAIN}"
-WORKING="\033[1;36m>_${PLAIN}"
+WORKING="\033[1;36m◉${PLAIN}"
 
 function main() {
     permission_judgment
@@ -618,7 +618,7 @@ function run_start() {
 }
 
 function run_end() {
-    echo -e "\n✨️ \033[1;34mPowered by https://linuxmirrors.cn\033[0m\n"
+    echo -e "\n✨️ \033[3;1mPowered by \033[34mhttps://linuxmirrors.cn\033[0m\n"
 }
 
 ## 报错退出
@@ -676,7 +676,7 @@ function collect_system_info() {
     ## 判定系统类型、版本、版本号
     case "${SYSTEM_FACTIONS}" in
     "${SYSTEM_DEBIAN}" | "${SYSTEM_OPENKYLIN}")
-        if [ ! -x /usr/bin/lsb_release ]; then
+        if ! command -v lsb_release &>/dev/null; then
             apt-get install -y lsb-release
             if [ $? -ne 0 ]; then
                 output_error "lsb-release 软件包安装失败\n\n本脚本依赖 lsb_release 指令判断系统具体类型和版本，当前系统可能为精简安装，请自行安装后重新执行脚本！"
@@ -910,7 +910,7 @@ function collect_system_info() {
     esac
     ## 判断是否可以使用高级交互式选择器
     CAN_USE_ADVANCED_INTERACTIVE_SELECTION="false"
-    if [ ! -z "$(command -v tput)" ]; then
+    if command -v tput &>/dev/null; then
         CAN_USE_ADVANCED_INTERACTIVE_SELECTION="true"
     fi
 }
@@ -972,7 +972,7 @@ function choose_mirrors() {
         for ((a = 0; a < $list_arr_sum; a++)); do
             list_arr[$a]="$(eval echo \${$1[a]})"
         done
-        if [ -x /usr/bin/printf ]; then
+        if command -v printf &>/dev/null; then
             for ((i = 0; i < ${#list_arr[@]}; i++)); do
                 tmp_mirror_name=$(echo "${list_arr[i]}" | awk -F '@' '{print$1}') # 软件源名称
                 # tmp_mirror_url=$(echo "${list_arr[i]}" | awk -F '@' '{print$2}') # 软件源地址
@@ -1532,7 +1532,7 @@ function change_mirrors_main() {
             done
         }
 
-        if [[ -x /usr/bin/diff && "${BACKED_UP}" == "true" ]]; then
+        if command -v diff &>/dev/null && [[ "${BACKED_UP}" == "true" ]]; then
             case "${SYSTEM_FACTIONS}" in
             "${SYSTEM_DEBIAN}" | "${SYSTEM_OPENKYLIN}")
                 if [[ "${SYSTEM_JUDGMENT}" != "${SYSTEM_LINUX_MINT}" ]]; then
@@ -1619,7 +1619,7 @@ function change_mirrors_main() {
         print_diff
     fi
     ## 更新软件源
-    echo -e "\n$WORKING 开始${SYNC_MIRROR_TEXT}...\n"
+    echo -e "\n$WORKING ${SYNC_MIRROR_TEXT}...\n"
     case "${SYSTEM_FACTIONS}" in
     "${SYSTEM_DEBIAN}" | "${SYSTEM_OPENKYLIN}")
         apt-get update
@@ -2546,25 +2546,25 @@ function interactive_select_mirror() {
     unset options[${#options[@]}-1]
     local selected=0
     local start=0
-    local page_size=$(($(tput lines) - 3)) # 减去1行用于显示提示信息
+    local page_size=$(($(tput lines 2>/dev/null) - 3)) # 减去3行用于显示提示信息
     function clear_menu() {
-        tput rc
+        tput rc 2>/dev/null
         for ((i = 0; i < ${#options[@]} + 1; i++)); do
             echo -e "\r\033[K"
         done
-        tput rc
+        tput rc 2>/dev/null
     }
     function cleanup() {
         clear_menu
-        tput rc
-        tput cnorm
-        tput rmcup
-        echo -e "\n${TIP} ${RED}操作已取消${PLAIN}\n"
+        tput rc 2>/dev/null
+        tput cnorm 2>/dev/null
+        tput rmcup 2>/dev/null
+        echo -e "\n\033[1;44m 提示 \033[0m \033[31m操作已取消\033[0m\n"
         exit 130
     }
     function draw_menu() {
-        tput clear
-        tput cup 0 0
+        tput clear 2>/dev/null
+        tput cup 0 0 2>/dev/null
         echo -e "${message}"
         local end=$((start + page_size - 1))
         if [ $end -ge ${#options[@]} ]; then
@@ -2586,9 +2586,9 @@ function interactive_select_mirror() {
         fi
         echo "$key"
     }
-    tput smcup              # 保存当前屏幕并切换到新屏幕
-    tput sc                 # 保存光标位置
-    tput civis              # 隐藏光标
+    tput smcup 2>/dev/null  # 保存当前屏幕并切换到新屏幕
+    tput sc 2>/dev/null     # 保存光标位置
+    tput civis 2>/dev/null  # 隐藏光标
     trap "cleanup" INT TERM # 捕捉脚本结束时恢复光标
     draw_menu               # 初始化菜单位置
     # 处理选择
@@ -2623,9 +2623,9 @@ function interactive_select_mirror() {
         draw_menu
     done
     # clear_menu # 清除菜单
-    tput cnorm # 恢复光标
-    tput rmcup # 恢复之前的屏幕
-    # tput rc    # 恢复光标位置
+    tput cnorm 2>/dev/null # 恢复光标
+    tput rmcup 2>/dev/null # 恢复之前的屏幕
+    # tput rc 2>/dev/null # 恢复光标位置
     # 处理结果
     _SELECT_RESULT="${options[$selected]}"
 }
@@ -2638,19 +2638,19 @@ function interactive_select_boolean() {
     local original_line
     function store_position() {
         # 保存菜单开始前的行位置
-        original_line=$(tput lines)
+        original_line=$(tput lines 2>/dev/null)
     }
     function clear_menu() {
         # 向上移动到菜单开始位置并清除菜单
         for ((i = 0; i < ${menu_height}; i++)); do
-            tput cuu1 # 光标上移一行
-            tput el   # 清除当前行
+            tput cuu1 2>/dev/null # 光标上移一行
+            tput el 2>/dev/null   # 清除当前行
         done
     }
     function cleanup() {
         clear_menu
-        tput cnorm
-        echo -e "\n${TIP} ${RED}操作已取消${PLAIN}\n"
+        tput cnorm 2>/dev/null
+        echo -e "\n\033[1;44m 提示 \033[0m \033[31m操作已取消\033[0m\n"
         exit 130
     }
     function draw_menu() {
@@ -2658,9 +2658,9 @@ function interactive_select_boolean() {
         echo -e "╭─ ${message}"
         echo -e "│"
         if [ "$selected" -eq 0 ]; then
-            echo -e "╰─ \033[32m●\033[0m 是\033[2m / ○ 否\033[0m"
+            echo -e "╰─ \033[34m●\033[0m 是\033[2m / ○ 否\033[0m"
         else
-            echo -e "╰─ \033[2m○ 是 / \033[0m\033[32m●\033[0m 否"
+            echo -e "╰─ \033[2m○ 是 / \033[0m\033[34m●\033[0m 否"
         fi
     }
 
@@ -2672,8 +2672,8 @@ function interactive_select_boolean() {
         fi
         echo "$key"
     }
-    tput civis     # 隐藏光标
-    store_position # 记录当前位置
+    tput civis 2>/dev/null # 隐藏光标
+    store_position         # 记录当前位置
     trap "cleanup" INT TERM
     draw_menu # 初始化菜单位置
     # 处理选择
@@ -2713,7 +2713,7 @@ function interactive_select_boolean() {
         echo -e "╰─ \033[2m○ 是 / \033[0m\033[32m●\033[0m \033[1m否\033[0m"
         _SELECT_RESULT="false"
     fi
-    tput cnorm # 恢复光标
+    tput cnorm 2>/dev/null # 恢复光标
 }
 
 ##############################################################################
