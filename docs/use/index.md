@@ -4,7 +4,7 @@ hide:
   - footer
 ---
 
-> 如果您觉得这个项目不错对您有所帮助的话，请点击仓库右上角的 Star 并分享给更多的朋友 :octicons-heart-fill-24:{ .heart style="color: red" }
+> 如果觉得这个项目不错对您有所帮助的话，请点击仓库右上角的 Star 并分享给更多的朋友 :octicons-heart-fill-24:{ .heart style="color: red" }
 
 ## 一键执行命令
 
@@ -12,7 +12,7 @@ hide:
 
     !!! quote ""
 
-        === ":octicons-globe-16: 官网（推荐）"
+        === ":linuxmirrors: 官网（推荐）"
 
             ``` bash
             bash <(curl -sSL https://linuxmirrors.cn/main.sh)
@@ -40,7 +40,7 @@ hide:
 
     !!! quote ""
 
-        === ":octicons-globe-16: 官网（推荐）"
+        === ":linuxmirrors: 官网（推荐）"
 
             ``` bash
             bash <(curl -sSL https://linuxmirrors.cn/main.sh) --abroad # (1)!
@@ -76,7 +76,7 @@ hide:
 
     !!! quote ""
 
-        === ":octicons-globe-16: 官网（推荐）"
+        === ":linuxmirrors: 官网（推荐）"
 
             ``` bash
             bash <(curl -sSL https://linuxmirrors.cn/main.sh) --edu # (1)!
@@ -333,6 +333,7 @@ hide:
         !!! quote ""
 
             - 如果提示 `bash: /proc/self/fd/11: No such file or directory`，请切换至 `Root` 用户执行，切换命令为 `sudo -i` 或 `su root`
+            - 如果交互打印界面发现是输入而不是新式的方向键交互，那么请自行安装 `ncurses` 或 `nano` 软件包，新式的方向键交互依赖 `tput` 指令实现。
 
 - ### 关于备份原有软件源
 
